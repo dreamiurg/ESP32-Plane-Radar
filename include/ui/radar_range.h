@@ -44,6 +44,12 @@ float fetchRadiusKm();
 
 bool useMiles();
 bool showRunways();
+/** True heading, in degrees, shown at the top of the radar (default 180). */
+uint16_t headingAtTopDeg();
+/** Convert a true heading to its clockwise screen-relative heading. */
+float headingToScreen(float heading_deg);
+/** Portal field: degrees 0-359; false if unparsable/out of range. */
+bool saveHeadingFromPortal(const char* heading_deg_value);
 /** WiFi portal checkbox: "T" = miles, otherwise km. */
 void saveMilesFromPortal(const char* checkbox_value);
 void saveRunwaysFromPortal(const char* checkbox_value);

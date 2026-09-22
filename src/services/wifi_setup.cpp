@@ -69,13 +69,20 @@ void stopLanWebPortal();
 bool wifiLinkUp();
 
 constexpr int kCoordParamLen = 20;
+constexpr int kHeadingParamLen = 3;
 constexpr char kCoordInputAttrs[] =
     " type=\"number\" step=\"0.000001\"";
+constexpr char kHeadingInputAttrs[] =
+    " type=\"number\" min=\"0\" max=\"359\" step=\"1\" inputmode=\"numeric\"";
 
 WiFiManagerParameter s_param_lat("radar_lat", "Latitude (deg)", "0",
                                 kCoordParamLen, kCoordInputAttrs);
 WiFiManagerParameter s_param_lon("radar_lon", "Longitude (deg)", "0",
                                 kCoordParamLen, kCoordInputAttrs);
+
+WiFiManagerParameter s_param_heading("heading_top", "Compass heading at top",
+                                     "180", kHeadingParamLen,
+                                     kHeadingInputAttrs);
 
 char s_miles_checkbox_attrs[32] = "type=\"checkbox\"";
 WiFiManagerParameter s_param_miles("use_miles", "Display distances in miles", "T", 2,
@@ -92,6 +99,9 @@ void refreshPortalParamDefaults() {
   snprintf(lon_buf, sizeof(lon_buf), "%.6f", services::location::lon());
   s_param_lat.setValue(lat_buf, kCoordParamLen);
   s_param_lon.setValue(lon_buf, kCoordParamLen);
+  char heading_buf[kHeadingParamLen + 1];
+  snprintf(heading_buf, sizeof(heading_buf), "%u", ui::radar::headingAtTopDeg());
+  s_param_heading.setValue(heading_buf, kHeadingParamLen);
   snprintf(s_miles_checkbox_attrs, sizeof(s_miles_checkbox_attrs), "type=\"checkbox\"%s",
            ui::radar::useMiles() ? " checked" : "");
   s_param_miles.setValue("T", 2);
@@ -107,6 +117,7 @@ void onPortalParamsSaved() {
   // silently switch miles/runways off. (lat/lon survive: they fail parsing.)
   if (s_wm.server == nullptr ||
       !(s_wm.server->hasArg("radar_lat") || s_wm.server->hasArg("radar_lon") ||
+        s_wm.server->hasArg("heading_top") ||
         s_wm.server->hasArg("use_miles") ||
         s_wm.server->hasArg("show_runways"))) {
     refreshPortalParamDefaults();
@@ -117,6 +128,9 @@ void onPortalParamsSaved() {
                                            s_param_lon.getValue())) {
     Serial.println("Invalid lat/lon in portal — keeping previous location");
   }
+  if (!ui::radar::saveHeadingFromPortal(s_param_heading.getValue())) {
+    Serial.println("Invalid compass heading — use a whole degree from 0 to 359");
+  }
   ui::radar::saveMilesFromPortal(s_param_miles.getValue());
   ui::radar::saveRunwaysFromPortal(s_param_runways.getValue());
 }
@@ -125,6 +139,7 @@ void attachPortalParams(WiFiManager& wm) {
   refreshPortalParamDefaults();
   wm.addParameter(&s_param_lat);
   wm.addParameter(&s_param_lon);
+  wm.addParameter(&s_param_heading);
   wm.addParameter(&s_param_miles);
   wm.addParameter(&s_param_runways);
   wm.setSaveParamsCallback(onPortalParamsSaved);

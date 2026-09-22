@@ -44,11 +44,6 @@ constexpr uint32_t kDisplaySpiWriteHz = 40000000;
 constexpr bool kDisplayInvert = true;
 constexpr bool kDisplayRgbOrder = true;
 
-/** true = north at bottom of screen (view matches looking south). */
-constexpr bool kRadarNorthDown = true;
-constexpr float kRadarFlipSign = kRadarNorthDown ? -1.0f : 1.0f;
-constexpr float kRadarHeadingOffsetDeg = kRadarNorthDown ? 180.0f : 0.0f;
-
 // --- Radar center defaults (overridden via WiFi setup portal) ---
 constexpr double kDefaultRadarLat = 52.3676;
 constexpr double kDefaultRadarLon = 4.9041;

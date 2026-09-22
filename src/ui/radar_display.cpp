@@ -488,8 +488,8 @@ void drawAircraft() {
     const size_t i = items[d].index;
     const int x = items[d].x;
     const int y = items[d].y;
-    const float nose = planes[i].nose_deg + config::kRadarHeadingOffsetDeg;
-    const float track = planes[i].track_deg + config::kRadarHeadingOffsetDeg;
+    const float nose = radar::headingToScreen(planes[i].nose_deg);
+    const float track = radar::headingToScreen(planes[i].track_deg);
     const bool priv = planes[i].is_private;
     drawSpeedVector(x, y, nose, track, planes[i].gs_knots,
                     priv ? radar::kColorTrackVectorPrivate : radar::kColorTrackVector);
@@ -576,15 +576,19 @@ void drawCenterDot(int cx, int cy) {
 void drawCardinalLabels() {
   const int cx = radar::kCenterX;
   const int cy = radar::kCenterY;
-  const int edge = radar::kSize - 1;
+  // Labels ride the bezel at a fixed radius so they rotate with the map while
+  // the glyphs stay upright.
+  constexpr int kLabelRadius =
+      radar::kCenterX - radar::kCardinalLabelHeightPx / 2 + 1;
+  constexpr const char* kCardinals[] = {"N", "E", "S", "W"};
 
-  const bool f = config::kRadarNorthDown;
-  drawCardinalLabel(f ? "S" : "N", cx, radar::kCardinalNorthOffsetY,
-                    textdatum_t::top_center);
-  drawCardinalLabel(f ? "N" : "S", cx, edge + radar::kCardinalSouthOffsetY,
-                    textdatum_t::bottom_center);
-  drawCardinalLabel(f ? "E" : "W", 0, cy, textdatum_t::middle_left);
-  drawCardinalLabel(f ? "W" : "E", edge, cy, textdatum_t::middle_right);
+  for (int i = 0; i < 4; ++i) {
+    const float angle =
+        radar::headingToScreen(static_cast<float>(i * 90)) * radar::kDegToRad;
+    const int x = cx + static_cast<int>(lroundf(sinf(angle) * kLabelRadius));
+    const int y = cy - static_cast<int>(lroundf(cosf(angle) * kLabelRadius));
+    drawCardinalLabel(kCardinals[i], x, y, textdatum_t::middle_center);
+  }
 }
 
 int scaleLabelAnchorX(int cx, int outer_radius) {

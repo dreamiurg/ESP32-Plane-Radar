@@ -5,7 +5,8 @@ namespace ui::radar {
 constexpr float kKmPerDeg = 111.0f;
 constexpr float kDegToRad = 3.14159265f / 180.0f;
 
-/** Offset of lat/lon from the radar center, in km (north-down flip applied). */
+/** Offset of lat/lon from the radar center, in km, rotated into screen
+ *  orientation (see headingAtTopDeg). dx = screen east, dy = screen north. */
 void offsetKmFromCenter(float lat, float lon, float* dx_km, float* dy_km,
                         float* dist_km);
 

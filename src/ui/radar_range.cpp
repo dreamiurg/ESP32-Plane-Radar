@@ -4,6 +4,7 @@
 
 #include <Preferences.h>
 #include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 
@@ -15,6 +16,10 @@ constexpr char kPrefsNamespace[] = "planeradar";
 constexpr char kPrefsRangeKey[] = "rangeIdx";
 constexpr char kPrefsMilesKey[] = "useMiles";
 constexpr char kPrefsRunwaysKey[] = "showRwys";
+constexpr char kPrefsHeadingKey[] = "headingTop";
+// Upstream (MatixYo#78) defaults to 0 (north up); this device is mounted with
+// north at the bottom.
+constexpr uint16_t kDefaultHeadingAtTopDeg = 180;
 constexpr uint8_t kDefaultRangeIndex = 1;  // 10 km ring
 constexpr float kKmPerMile = 1.609344f;
 
@@ -22,6 +27,7 @@ Preferences s_prefs;
 uint8_t s_range_index = kDefaultRangeIndex;
 bool s_use_miles = false;
 bool s_show_runways = true;
+uint16_t s_heading_at_top_deg = kDefaultHeadingAtTopDeg;
 
 void saveRangeIndex() {
   if (!s_prefs.begin(kPrefsNamespace, false)) {
@@ -44,6 +50,14 @@ void saveShowRunways() {
     return;
   }
   s_prefs.putBool(kPrefsRunwaysKey, s_show_runways);
+  s_prefs.end();
+}
+
+void saveHeadingAtTop() {
+  if (!s_prefs.begin(kPrefsNamespace, false)) {
+    return;
+  }
+  s_prefs.putUShort(kPrefsHeadingKey, s_heading_at_top_deg);
   s_prefs.end();
 }
 
@@ -70,6 +84,10 @@ void rangeInit() {
       (saved < kRangePresetCount) ? saved : kDefaultRangeIndex;
   s_use_miles = s_prefs.getBool(kPrefsMilesKey, false);
   s_show_runways = s_prefs.getBool(kPrefsRunwaysKey, true);
+  const uint16_t saved_heading =
+      s_prefs.getUShort(kPrefsHeadingKey, kDefaultHeadingAtTopDeg);
+  s_heading_at_top_deg =
+      (saved_heading < 360) ? saved_heading : kDefaultHeadingAtTopDeg;
   s_prefs.end();
 }
 
@@ -90,6 +108,33 @@ float fetchRadiusKm() {
 bool useMiles() { return s_use_miles; }
 
 bool showRunways() { return s_show_runways; }
+
+uint16_t headingAtTopDeg() { return s_heading_at_top_deg; }
+
+float headingToScreen(float heading_deg) {
+  float rotated =
+      fmodf(heading_deg - static_cast<float>(s_heading_at_top_deg), 360.0f);
+  if (rotated < 0.0f) {
+    rotated += 360.0f;
+  }
+  return rotated;
+}
+
+bool saveHeadingFromPortal(const char* heading_deg_value) {
+  if (heading_deg_value == nullptr || heading_deg_value[0] == '\0') {
+    return false;
+  }
+  char* end = nullptr;
+  const long heading = strtol(heading_deg_value, &end, 10);
+  if (end == heading_deg_value || *end != '\0' || heading < 0 ||
+      heading > 359) {
+    return false;
+  }
+  s_heading_at_top_deg = static_cast<uint16_t>(heading);
+  saveHeadingAtTop();
+  Serial.printf("Heading at top: %u degrees\n", s_heading_at_top_deg);
+  return true;
+}
 
 void saveMilesFromPortal(const char* checkbox_value) {
   s_use_miles = portalCheckboxChecked(checkbox_value);
@@ -120,9 +165,11 @@ void formatCurrentRing3Label(char* buf, size_t len) {
 void unitsReset() {
   s_use_miles = false;
   s_show_runways = true;
+  s_heading_at_top_deg = kDefaultHeadingAtTopDeg;
   if (s_prefs.begin(kPrefsNamespace, false)) {
     s_prefs.remove(kPrefsMilesKey);
     s_prefs.remove(kPrefsRunwaysKey);
+    s_prefs.remove(kPrefsHeadingKey);
     s_prefs.end();
   }
 }
