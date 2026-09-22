@@ -101,6 +101,18 @@ void refreshPortalParamDefaults() {
 }
 
 void onPortalParamsSaved() {
+  // WiFiManager fires this callback again for a later portal request that
+  // carries none of our parameters, by which point it has already cleared its
+  // form buffers. The empty checkbox values then read as "unchecked" and
+  // silently switch miles/runways off. (lat/lon survive: they fail parsing.)
+  if (s_wm.server == nullptr ||
+      !(s_wm.server->hasArg("radar_lat") || s_wm.server->hasArg("radar_lon") ||
+        s_wm.server->hasArg("use_miles") ||
+        s_wm.server->hasArg("show_runways"))) {
+    refreshPortalParamDefaults();
+    return;
+  }
+
   if (!services::location::saveFromStrings(s_param_lat.getValue(),
                                            s_param_lon.getValue())) {
     Serial.println("Invalid lat/lon in portal — keeping previous location");
