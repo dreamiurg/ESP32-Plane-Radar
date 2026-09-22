@@ -52,6 +52,9 @@ constexpr double kDefaultRadarLon = 4.9041;
 constexpr unsigned long kAdsbFetchIntervalMs = 3000;
 /** false = hide aircraft with alt_baro "ground"; true = show them too. */
 constexpr bool kAdsbShowGroundAircraft = false;
+/** Flash the center dot green for kCenterBlinkMs after each successful fetch. */
+constexpr bool kCenterBlinkOnRefresh = true;
+constexpr unsigned long kCenterBlinkMs = 150;
 
 // --- UI colors (RGB565) — status screens ---
 constexpr uint16_t kColorBlack = 0x0000;

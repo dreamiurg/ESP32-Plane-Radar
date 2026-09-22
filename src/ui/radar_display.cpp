@@ -678,15 +678,36 @@ void radarDisplayDraw() {
   tft.setTextDatum(textdatum_t::top_left);
 }
 
+namespace {
+unsigned long s_blink_started_ms = 0;
+
+void paintCenterDotOnPanel(uint16_t color) {
+  tft.fillSmoothCircle(radar::kCenterX, radar::kCenterY, radar::kCenterDotRadius,
+                       color);
+}
+}  // namespace
+
 void radarDisplayRefreshAircraft() {
   initPalette();
 
   if (ensureFrameSprite()) {
     renderFrame();
-    return;
+  } else {
+    radarDisplayDraw();
   }
 
-  radarDisplayDraw();
+  if (config::kCenterBlinkOnRefresh) {
+    paintCenterDotOnPanel(radar::kColorTrackVectorPrivate);  // green
+    s_blink_started_ms = millis();
+  }
+}
+
+void radarDisplayBlinkTick() {
+  if (s_blink_started_ms != 0 &&
+      millis() - s_blink_started_ms >= config::kCenterBlinkMs) {
+    s_blink_started_ms = 0;
+    paintCenterDotOnPanel(radar::kColorCenter);
+  }
 }
 
 }  // namespace ui

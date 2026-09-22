@@ -85,6 +85,7 @@ void setup() {
 void loop() {
   handleBootButton();
   wifiLoop();
+  ui::radarDisplayBlinkTick();
 
   if (WiFi.status() != WL_CONNECTED) {
     if (g_radar_visible) {

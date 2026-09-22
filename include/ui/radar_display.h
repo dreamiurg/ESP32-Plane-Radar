@@ -8,4 +8,7 @@ void radarDisplayDraw();
 /** Redraw aircraft only (blits cached grid; no full-screen clear). */
 void radarDisplayRefreshAircraft();
 
+/** Call from loop(): restores the center dot after its refresh blink. */
+void radarDisplayBlinkTick();
+
 }  // namespace ui
