@@ -110,7 +110,7 @@ void loop() {
     if (!g_radar_visible) {
       showRadarIfConnected();
     } else if (millis() - g_last_adsb_fetch_ms >= config::kAdsbFetchIntervalMs) {
-      g_last_adsb_fetch_ms = millis();
+      g_last_adsb_fetch_ms = millis();  // fixed-rate: interval includes fetch time
       fetchAndDrawAircraft();
     }
   }

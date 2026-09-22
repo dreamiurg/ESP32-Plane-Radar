@@ -13,6 +13,8 @@ struct Aircraft {
   char callsign[9];
   char type[5];
   char alt[12];
+  char route[8];  // "SEA-SFO" from adsbdb, empty if unknown
+  bool is_private;  // light/small aircraft (ADS-B category A1/A2) or N-number
 };
 
 constexpr size_t kMaxAircraft = 64;
@@ -26,5 +28,8 @@ void setPollFn(PollFn fn);
 
 /** Fetch aircraft within fetch_radius_km of center_lat/lon from adsb.fi. */
 bool fetchUpdate(double center_lat, double center_lon, float fetch_radius_km);
+
+/** millis() of the last successful fetch (0 = never). */
+unsigned long lastSuccessMs();
 
 }  // namespace services::adsb
