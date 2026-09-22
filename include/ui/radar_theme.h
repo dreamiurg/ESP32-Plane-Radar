@@ -84,6 +84,10 @@ constexpr uint8_t kPrivateAircraftB = 0;
 constexpr uint8_t kPrivateTrackR = 0;
 constexpr uint8_t kPrivateTrackG = 255;
 constexpr uint8_t kPrivateTrackB = 0;
+// Military (dbFlags bit 0): orange plane, airline pink track.
+constexpr uint8_t kMilitaryAircraftR = 255;
+constexpr uint8_t kMilitaryAircraftG = 140;
+constexpr uint8_t kMilitaryAircraftB = 0;
 constexpr uint8_t kTagTypeR = 255;
 constexpr uint8_t kTagTypeG = 200;
 constexpr uint8_t kTagTypeB = 0;
@@ -105,6 +109,7 @@ extern uint16_t kColorCenter;
 extern uint16_t kColorAircraft;
 extern uint16_t kColorTrackVector;
 extern uint16_t kColorAircraftPrivate;
+extern uint16_t kColorAircraftMilitary;
 extern uint16_t kColorTrackVectorPrivate;
 extern uint16_t kColorTagType;
 extern uint16_t kColorTagAltitude;

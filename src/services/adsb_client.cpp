@@ -319,6 +319,11 @@ bool isPrivateAircraft(const JsonObject& plane, const char* callsign) {
   return callsign[0] == 'N' && isdigit(static_cast<unsigned char>(callsign[1]));
 }
 
+/** adsb.fi/readsb dbFlags is an integer bitmask; bit 0 marks military. */
+bool isMilitaryAircraft(const JsonObject& plane) {
+  return plane["dbFlags"].is<int>() && (plane["dbFlags"].as<int>() & 1) != 0;
+}
+
 void fillTagFields(Aircraft* ac, const JsonObject& plane) {
   copyJsonStringTrimmed(plane, "flight", ac->callsign, sizeof(ac->callsign));
   if (ac->callsign[0] == '\0') {
@@ -327,6 +332,7 @@ void fillTagFields(Aircraft* ac, const JsonObject& plane) {
 
   copyJsonStringTrimmed(plane, "t", ac->type, sizeof(ac->type));
   formatAltitudeTag(plane, ac->alt, sizeof(ac->alt));
+  ac->is_military = isMilitaryAircraft(plane);
   ac->is_private = isPrivateAircraft(plane, ac->callsign);
 }
 
@@ -347,7 +353,7 @@ bool fetchAircraftInto(double center_lat, double center_lon,
   for (const char* key :
        {"lat", "lon", "true_heading", "mag_heading", "track", "dir", "gs",
         "tas", "ias", "alt_baro", "alt_geom", "flight", "hex", "t",
-        "category"}) {
+        "category", "dbFlags"}) {
     f[key] = true;
   }
 

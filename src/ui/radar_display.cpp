@@ -25,6 +25,7 @@ uint16_t kColorLabel = 0xFFFF;
 uint16_t kColorCenter = 0xFFFF;
 uint16_t kColorAircraft = 0x001F;
 uint16_t kColorTrackVector = 0xFFFF;
+uint16_t kColorAircraftMilitary = 0x001F;
 uint16_t kColorAircraftPrivate = 0xFFE0;
 uint16_t kColorTrackVectorPrivate = 0x07E0;
 uint16_t kColorTagType = 0x5DFF;
@@ -180,11 +181,17 @@ void initPalette() {
   if (config::kDisplayRgbOrder) {
     radar::kColorAircraftPrivate = tft.color565(
         radar::kPrivateAircraftB, radar::kPrivateAircraftG, radar::kPrivateAircraftR);
+    radar::kColorAircraftMilitary = tft.color565(radar::kMilitaryAircraftB,
+                                                 radar::kMilitaryAircraftG,
+                                                 radar::kMilitaryAircraftR);
     radar::kColorTrackVectorPrivate = tft.color565(
         radar::kPrivateTrackB, radar::kPrivateTrackG, radar::kPrivateTrackR);
   } else {
     radar::kColorAircraftPrivate = tft.color565(
         radar::kPrivateAircraftR, radar::kPrivateAircraftG, radar::kPrivateAircraftB);
+    radar::kColorAircraftMilitary = tft.color565(radar::kMilitaryAircraftR,
+                                                 radar::kMilitaryAircraftG,
+                                                 radar::kMilitaryAircraftB);
     radar::kColorTrackVectorPrivate = tft.color565(
         radar::kPrivateTrackR, radar::kPrivateTrackG, radar::kPrivateTrackB);
   }
@@ -427,6 +434,14 @@ void sortBeyondDotsFarFirst(BeyondDotDrawItem* items, size_t count) {
   }
 }
 
+/** Symbol/rim-dot color: military > private > airline. */
+uint16_t aircraftColor(const services::adsb::Aircraft& plane) {
+  if (plane.is_military) {
+    return radar::kColorAircraftMilitary;
+  }
+  return plane.is_private ? radar::kColorAircraftPrivate : radar::kColorAircraft;
+}
+
 void drawAircraft() {
   initLabelMetrics();
 
@@ -470,8 +485,7 @@ void drawAircraft() {
     }
     dots[dot_count].x = dot_x;
     dots[dot_count].y = dot_y;
-    dots[dot_count].color = planes[i].is_private ? radar::kColorAircraftPrivate
-                                                 : radar::kColorAircraft;
+    dots[dot_count].color = aircraftColor(planes[i]);
     dots[dot_count].dist_sq = distSqFromCenter(dot_x, dot_y);
     ++dot_count;
   }
@@ -490,11 +504,10 @@ void drawAircraft() {
     const int y = items[d].y;
     const float nose = radar::headingToScreen(planes[i].nose_deg);
     const float track = radar::headingToScreen(planes[i].track_deg);
-    const bool priv = planes[i].is_private;
+    const bool priv = planes[i].is_private && !planes[i].is_military;
     drawSpeedVector(x, y, nose, track, planes[i].gs_knots,
                     priv ? radar::kColorTrackVectorPrivate : radar::kColorTrackVector);
-    drawHeadingTriangle(x, y, nose,
-                        priv ? radar::kColorAircraftPrivate : radar::kColorAircraft,
+    drawHeadingTriangle(x, y, nose, aircraftColor(planes[i]),
                         priv ? radar::kPrivateAircraftScale : 1.0f);
   }
   for (size_t d = 0; d < draw_count; ++d) {

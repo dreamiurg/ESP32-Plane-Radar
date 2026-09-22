@@ -14,6 +14,7 @@ struct Aircraft {
   char type[5];
   char alt[12];
   char route[8];  // "SEA-SFO" from adsbdb, empty if unknown
+  bool is_military;  // adsb.fi dbFlags bit 0
   bool is_private;  // light/small aircraft (ADS-B category A1/A2) or N-number
 };
 
