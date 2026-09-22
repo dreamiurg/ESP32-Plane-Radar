@@ -21,6 +21,11 @@ constexpr float kKmPerNm = 1.852f;
 constexpr int kConnectTimeoutMs = 5000;  // TLS handshake needs room
 constexpr int kConnectAttempts = 1;  // a stalled TLS connect blocks the UI; retry next poll instead
 constexpr unsigned long kRequestTimeoutMs = 6000;
+/** Below this, the mbedTLS handshake can't get its ~32 KB of session buffers.
+ *  It would still burn the full connect timeout before failing, with the UI
+ *  frozen — cheaper to skip the poll. Tune if the board reports a different
+ *  floor. */
+constexpr uint32_t kMinFreeHeapBytes = 45000;
 unsigned long s_last_success_ms = 0;
 
 Aircraft s_aircraft[kMaxAircraft];
@@ -137,6 +142,13 @@ void formatAltitudeTag(const JsonObject& plane, char* out, size_t out_len) {
 
 bool httpGetJson(const String& url, const char* tag, JsonDocument& doc,
                  const JsonDocument& filter, int* status_out = nullptr) {
+  const uint32_t free_heap = ESP.getFreeHeap();
+  if (free_heap < kMinFreeHeapBytes) {
+    Serial.printf("%s: heap too low (%u), skipping\n", tag,
+                  static_cast<unsigned>(free_heap));
+    return false;
+  }
+
   WiFiClientSecure client;
   client.setInsecure();
 
