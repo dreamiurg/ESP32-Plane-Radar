@@ -1,5 +1,5 @@
 /**
- * Plane Radar — WiFi setup, then radar UI on the round GC9A01 display.
+ * Plane Radar — WiFi setup, then radar UI on the round display (GC9A01 or ST7701).
  */
 
 #include <Arduino.h>

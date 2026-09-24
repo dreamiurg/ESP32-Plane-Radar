@@ -639,6 +639,7 @@ bool ensureFrameSprite() {
     return true;
   }
   s_frame.setColorDepth(16);
+  s_frame.setPsram(psramFound());  // 480² frame is 450 KB; only PSRAM fits it
   if (!s_frame.createSprite(radar::kSize, radar::kSize)) {
     Serial.println("radar: frame sprite alloc failed");
     return false;

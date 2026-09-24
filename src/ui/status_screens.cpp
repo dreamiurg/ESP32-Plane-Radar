@@ -10,17 +10,18 @@
 #include "config.h"
 #include "hardware/display.h"
 #include "hardware/display_font.h"
+#include "ui/radar_theme.h"
 
 namespace {
 
-constexpr int kLineGap = 6;
+constexpr int kLineGap = ui::radar::scalePx(6);
 const int kCenterX = config::kDisplayWidth / 2;
 const int kCenterY = config::kDisplayHeight / 2;
 
 constexpr int kSpinnerDotCount = 10;
-constexpr int kSpinnerRadius = 113;
-constexpr int kSpinnerDotRadius = 2;
-constexpr int kSpinnerEraseRadius = 4;
+constexpr int kSpinnerRadius = kCenterY - ui::radar::scalePx(7);
+constexpr int kSpinnerDotRadius = ui::radar::scalePx(2);
+constexpr int kSpinnerEraseRadius = ui::radar::scalePx(4);
 constexpr float kSpinnerStepDeg = 6.0f;
 
 struct SpinnerDot {
@@ -31,7 +32,7 @@ struct SpinnerDot {
 
 char s_connecting_ssid[33];
 char s_ssid_line[33];
-constexpr int kConnectingTextMaxWidthPx = 220;
+constexpr int kConnectingTextMaxWidthPx = config::kDisplayWidth - ui::radar::scalePx(20);
 float s_spinner_angle_deg = -90.0f;
 SpinnerDot s_spinner_dots[kSpinnerDotCount];
 bool s_connecting_text_drawn = false;
@@ -136,7 +137,7 @@ void drawConnectingText() {
   const int detail_h = tft.fontHeight();
   const int total_h = detail_h * 2 + kLineGap;
   const int block_top = (config::kDisplayHeight - total_h) / 2;
-  constexpr int kPanelPadY = 8;
+  constexpr int kPanelPadY = ui::radar::scalePx(8);
   tft.fillRect(kCenterX - kConnectingTextMaxWidthPx / 2, block_top - kPanelPadY,
                kConnectingTextMaxWidthPx, total_h + kPanelPadY * 2, config::kColorBlack);
 
