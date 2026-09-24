@@ -703,6 +703,13 @@ void radarDisplayRefreshAircraft() {
   }
 }
 
+void radarDisplayMarkFault() {
+  s_blink_started_ms = 0;
+  const uint16_t red = config::kDisplayRgbOrder ? tft.color565(0, 0, 220)
+                                                : tft.color565(220, 0, 0);
+  paintCenterDotOnPanel(red);
+}
+
 void radarDisplayBlinkTick() {
   if (s_blink_started_ms != 0 &&
       millis() - s_blink_started_ms >= config::kCenterBlinkMs) {
